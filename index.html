@@ -86,6 +86,13 @@
     .size-choice{height:42px;border:1px solid #46525e;border-radius:11px;background:#11161b;color:var(--muted);font-weight:750}
     .size-choice.active{border-color:var(--accent);background:#2b2818;color:#ffe694;box-shadow:0 0 0 2px #ffcc331c}
     .sheet-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:8px}
+    .pull-refresh{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 8px);transform:translate(-50%,-72px);z-index:70;display:flex;align-items:center;gap:8px;min-height:40px;padding:0 13px;border:1px solid #46525e;border-radius:999px;background:#151a20f2;color:#f5f7f9;box-shadow:0 10px 30px #0009;backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .12s ease,transform .12s ease;font-size:.78rem;font-weight:800;white-space:nowrap}
+    .pull-refresh.visible{opacity:1}
+    .pull-refresh.ready{border-color:#8d7a26;background:#2b2818;color:#ffe694}
+    .pull-refresh.refreshing{opacity:1;transform:translate(-50%,0)!important}
+    .pull-refresh-icon{width:18px;height:18px;display:grid;place-items:center;font-size:1rem;line-height:1;transform:rotate(0deg)}
+    .pull-refresh.refreshing .pull-refresh-icon{animation:pullSpin .8s linear infinite}
+    @keyframes pullSpin{to{transform:rotate(360deg)}}
     .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:#f1f5f7;color:#111820;padding:10px 14px;border-radius:999px;font-weight:750;font-size:.85rem;box-shadow:0 10px 30px #0009;opacity:0;pointer-events:none;transition:.18s;z-index:30;white-space:nowrap}
     .toast.show{opacity:1;transform:translate(-50%,0)}
     .library-dialog{width:min(calc(100% - 16px),760px);height:min(88dvh,820px);padding:0;border:1px solid #36414c;border-radius:20px;background:#11161b;color:var(--text);box-shadow:0 24px 90px #000;overflow:hidden}
@@ -142,6 +149,10 @@
   </style>
 </head>
 <body>
+  <div class="pull-refresh" id="pullRefresh" aria-hidden="true">
+    <span class="pull-refresh-icon" id="pullRefreshIcon">↓</span>
+    <span id="pullRefreshText">引っ張って更新</span>
+  </div>
   <main class="app">
     <header class="topbar">
       <div class="brand">
@@ -255,7 +266,7 @@
       <div class="info-head">
         <div class="info-head-copy">
           <h2 id="infoTitle">写真寸法メモ</h2>
-          <span class="version" id="versionText">v1.1.1</span>
+          <span class="version" id="versionText">v1.2.0</span>
           <p class="made-by">Made by YUU</p>
         </div>
         <button class="close-info" id="closeInfo" aria-label="閉じる">×</button>
@@ -306,7 +317,7 @@
     'use strict';
     const CONFIG = Object.freeze({
       name: '写真寸法メモ',
-      version: 'v1.1.1',
+      version: 'v1.2.0',
       publicUrl: 'https://yuuuh26.github.io/photo-dimension-note/',
       githubUrl: 'https://github.com/yuuuh26/photo-dimension-note',
       dbName: 'photo-dimension-note-library',
@@ -335,7 +346,8 @@
       currentProjectId: null, currentProjectName: '', currentProjectFolderId: null, currentProjectCreated: 0,
       originalWidth: 0, originalHeight: 0, saveSerial: Promise.resolve(),
       libraryProjects: [], libraryFolders: [], librarySelected: new Set(), librarySelectMode: false,
-      dbReady: null
+      dbReady: null,
+      pullRefresh: {tracking:false,startY:0,distance:0,ready:false,refreshing:false}
     };
     const pointers = new Map();
     const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -815,6 +827,77 @@
     $('#zoomOut').addEventListener('click',()=>adjustZoom(state.zoom-.5));
     $('#fitBtn').addEventListener('click',()=>{state.zoom=1;updateDisplay();stage.scrollTo({left:0,top:0,behavior:'smooth'})});
     addEventListener('resize',()=>{updateDisplay();draw()});
+
+    const pullRefreshEl=$('#pullRefresh');
+    const pullRefreshText=$('#pullRefreshText');
+    const pullRefreshIcon=$('#pullRefreshIcon');
+    const PULL_TRIGGER=82;
+    const PULL_MAX=128;
+
+    function anyDialogOpen(){
+      return !!document.querySelector('dialog[open]') || labelSheet.classList.contains('show');
+    }
+    function resetPullRefresh(){
+      const p=state.pullRefresh;
+      if(p.refreshing)return;
+      p.tracking=false;p.distance=0;p.ready=false;
+      pullRefreshEl.classList.remove('visible','ready');
+      pullRefreshEl.style.transform='translate(-50%,-72px)';
+      pullRefreshIcon.textContent='↓';
+      pullRefreshIcon.style.transform='rotate(0deg)';
+      pullRefreshText.textContent='引っ張って更新';
+    }
+    function updatePullRefresh(distance){
+      const p=state.pullRefresh;
+      p.distance=clamp(distance,0,PULL_MAX);
+      p.ready=p.distance>=PULL_TRIGGER;
+      const progress=p.distance/PULL_TRIGGER;
+      const y=-62+Math.min(68,p.distance*.62);
+      pullRefreshEl.classList.add('visible');
+      pullRefreshEl.classList.toggle('ready',p.ready);
+      pullRefreshEl.style.transform=`translate(-50%,${y}px)`;
+      pullRefreshIcon.textContent=p.ready?'↻':'↓';
+      pullRefreshIcon.style.transform=`rotate(${Math.min(180,progress*180)}deg)`;
+      pullRefreshText.textContent=p.ready?'離して更新':'引っ張って更新';
+    }
+    async function performPullRefresh(){
+      const p=state.pullRefresh;
+      if(p.refreshing)return;
+      p.refreshing=true;p.tracking=false;
+      pullRefreshEl.classList.add('visible','refreshing');
+      pullRefreshEl.classList.remove('ready');
+      pullRefreshIcon.textContent='↻';pullRefreshIcon.style.transform='';
+      pullRefreshText.textContent='保存して更新中…';
+      try{
+        await saveLocal();
+        if('serviceWorker' in navigator){
+          const reg=await navigator.serviceWorker.getRegistration();
+          if(reg)await reg.update().catch(()=>{});
+        }
+      }catch(e){}
+      location.reload();
+    }
+    document.addEventListener('touchstart',(e)=>{
+      const p=state.pullRefresh;
+      if(p.refreshing||e.touches.length!==1||anyDialogOpen())return;
+      const target=e.target;
+      if(!(target.closest?.('.topbar')||target.closest?.('.quickbar')))return;
+      p.tracking=true;p.startY=e.touches[0].clientY;p.distance=0;p.ready=false;
+    },{passive:true});
+    document.addEventListener('touchmove',(e)=>{
+      const p=state.pullRefresh;
+      if(!p.tracking||p.refreshing||e.touches.length!==1){if(p.tracking&&e.touches.length>1)resetPullRefresh();return}
+      const dy=e.touches[0].clientY-p.startY;
+      if(dy<=0){resetPullRefresh();return}
+      if(dy>8)e.preventDefault();
+      updatePullRefresh(dy);
+    },{passive:false});
+    document.addEventListener('touchend',()=>{
+      const p=state.pullRefresh;
+      if(!p.tracking||p.refreshing)return;
+      if(p.ready)performPullRefresh();else resetPullRefresh();
+    },{passive:true});
+    document.addEventListener('touchcancel',resetPullRefresh,{passive:true});
 
     function choosePhoto(){photoInput.click()}
     $('#openPhoto').addEventListener('click',choosePhoto);$('#emptyOpen').addEventListener('click',choosePhoto);

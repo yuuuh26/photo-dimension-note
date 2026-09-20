@@ -88,6 +88,33 @@
     .sheet-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:8px}
     .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:#f1f5f7;color:#111820;padding:10px 14px;border-radius:999px;font-weight:750;font-size:.85rem;box-shadow:0 10px 30px #0009;opacity:0;pointer-events:none;transition:.18s;z-index:30;white-space:nowrap}
     .toast.show{opacity:1;transform:translate(-50%,0)}
+    .library-dialog{width:min(calc(100% - 16px),760px);height:min(88dvh,820px);padding:0;border:1px solid #36414c;border-radius:20px;background:#11161b;color:var(--text);box-shadow:0 24px 90px #000;overflow:hidden}
+    .library-dialog::backdrop{background:#000b;backdrop-filter:blur(3px)}
+    .library-card{position:relative;height:100%;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}
+    .library-head{display:flex;align-items:center;gap:10px;padding:15px 16px;border-bottom:1px solid var(--line);background:#171d23}
+    .library-head h2{margin:0;font-size:1.08rem;flex:1}
+    .library-count{font-size:.78rem;color:var(--muted);white-space:nowrap}
+    .library-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:7px;padding:10px 12px;border-bottom:1px solid var(--line)}
+    .library-select{min-width:0;height:42px;border:1px solid #46525e;border-radius:10px;background:#0f1317;color:#fff;padding:0 10px}
+    .library-grid{overflow:auto;padding:10px 10px 110px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-content:start}
+    .project-card{position:relative;min-width:0;border:1px solid #303a44;border-radius:14px;background:#171d23;overflow:hidden;cursor:pointer}
+    .project-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px #ffcc3330}
+    .project-thumb{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#252b31}
+    .project-info{padding:9px 10px 10px}
+    .project-name{font-size:.84rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .project-meta{margin-top:4px;color:var(--muted);font-size:.7rem;line-height:1.45}
+    .project-folder{margin-top:6px;display:inline-flex;max-width:100%;padding:3px 7px;border-radius:999px;background:#262e36;color:#cbd4dc;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .project-check{display:none;position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#111a;place-items:center;font-weight:900}
+    .selecting .project-check{display:grid}
+    .project-card.selected .project-check{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+    .library-empty{grid-column:1/-1;padding:34px 15px;text-align:center;color:var(--muted);line-height:1.7}
+    .selection-bar{position:absolute;left:10px;right:10px;bottom:10px;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px;border:1px solid #48535e;border-radius:14px;background:#171d23f5;box-shadow:0 12px 35px #000b;backdrop-filter:blur(10px)}
+    .selection-bar.hidden{display:none}
+    .selection-count{font-size:.78rem;font-weight:800;white-space:nowrap}
+    .danger-btn{border-color:#713d41!important;background:#381f22!important;color:#ffd6d8!important}
+    .library-footnote{padding:0 14px 12px;color:var(--muted);font-size:.7rem;line-height:1.45}
+    @media (min-width:620px){.library-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media (max-width:480px){.library-toolbar{grid-template-columns:minmax(0,1fr) auto auto}.library-toolbar .add-photo-btn{grid-column:1/-1}.selection-bar{grid-template-columns:auto minmax(0,1fr) auto}.selection-bar .move-btn{grid-column:2/4}.library-grid{padding-bottom:150px}}
     .info-dialog{width:min(calc(100% - 24px),560px);max-height:min(82dvh,720px);padding:0;border:1px solid #36414c;border-radius:20px;background:#1a2027;color:var(--text);box-shadow:0 24px 90px #000;overflow:hidden}
     .info-dialog::backdrop{background:#000a;backdrop-filter:blur(3px)}
     .info-card{padding:20px;overflow:auto;max-height:min(82dvh,720px)}
@@ -126,6 +153,9 @@
       <div class="top-actions">
         <button class="btn icon info-btn" id="infoBtn" aria-label="アプリ情報" title="アプリ情報">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></svg>
+        </button>
+        <button class="btn icon" id="libraryBtn" aria-label="写真ライブラリ" title="写真ライブラリ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h7l2 2h9v10H3z"/><path d="M3 7V5h7l2 2"/></svg>
         </button>
         <button class="btn icon" id="openPhoto" aria-label="写真を選ぶ" title="写真を選ぶ">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-5-5L5 19"/></svg>
@@ -225,7 +255,7 @@
       <div class="info-head">
         <div class="info-head-copy">
           <h2 id="infoTitle">写真寸法メモ</h2>
-          <span class="version" id="versionText">v1.0.0</span>
+          <span class="version" id="versionText">v1.1.0</span>
           <p class="made-by">Made by YUU</p>
         </div>
         <button class="close-info" id="closeInfo" aria-label="閉じる">×</button>
@@ -246,6 +276,29 @@
       </section>
     </div>
   </dialog>
+  <dialog class="library-dialog" id="libraryDialog" aria-labelledby="libraryTitle">
+    <div class="library-card" id="libraryCard">
+      <div class="library-head">
+        <h2 id="libraryTitle">端末内ライブラリ</h2>
+        <span class="library-count" id="libraryCount">0 / 100</span>
+        <button class="close-info" id="closeLibrary" aria-label="閉じる">×</button>
+      </div>
+      <div class="library-toolbar">
+        <select class="library-select" id="folderFilter" aria-label="フォルダ"></select>
+        <button class="mini-btn" id="createFolderBtn">＋フォルダ</button>
+        <button class="mini-btn" id="selectProjectsBtn">選択</button>
+        <button class="mini-btn add-photo-btn" id="libraryAddPhoto">＋写真</button>
+      </div>
+      <div class="library-grid" id="libraryGrid"></div>
+      <div class="library-footnote" id="storageEstimate">保存容量を確認中…</div>
+      <div class="selection-bar hidden" id="selectionBar">
+        <span class="selection-count" id="selectionCount">0件選択</span>
+        <select class="library-select" id="moveFolderSelect" aria-label="移動先フォルダ"></select>
+        <button class="mini-btn move-btn" id="moveSelectedBtn">移動</button>
+        <button class="mini-btn danger-btn" id="deleteSelectedBtn">削除</button>
+      </div>
+    </div>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -253,11 +306,12 @@
     'use strict';
     const CONFIG = Object.freeze({
       name: '写真寸法メモ',
-      version: 'v1.0.0',
+      version: 'v1.1.0',
       publicUrl: 'https://yuuuh26.github.io/photo-dimension-note/',
       githubUrl: 'https://github.com/yuuuh26/photo-dimension-note',
       dbName: 'photo-dimension-note',
-      dbVersion: 1,
+      dbVersion: 2,
+      maxProjects: 100,
       maxZoom: 8,
       maxImageSize: 4096,
       historyLimit: 40
@@ -276,7 +330,10 @@
       mode: 'dimension', color: '#ffd43b', redactColor: '#2fd176', redactWidth: 22, commentSize: 'tiny', zoom: 1,
       history: [], future: [], drawing: null, dragging: null, pendingEditor: null,
       pan: null, pinch: null, commentTap: null, redactWidthBefore: null, db: null,
-      storagePersisted: false, saveErrorVisible: false
+      storagePersisted: false, saveErrorVisible: false,
+      currentProjectId: null, currentProjectName: '', currentProjectFolderId: null, currentProjectCreated: 0,
+      originalWidth: 0, originalHeight: 0, saveSerial: Promise.resolve(),
+      libraryProjects: [], libraryFolders: [], librarySelected: new Set(), librarySelectMode: false
     };
     const pointers = new Map();
     const clone = (v) => JSON.parse(JSON.stringify(v));
@@ -288,36 +345,110 @@
       clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800);
     }
 
+    function idbRequest(req){
+      return new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+    }
+    function txDone(tx){
+      return new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)});
+    }
     function openDB(){
       return new Promise((resolve) => {
         const req=indexedDB.open(CONFIG.dbName,CONFIG.dbVersion);
-        req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('work'))req.result.createObjectStore('work')};
+        req.onupgradeneeded=()=>{
+          const db=req.result;
+          if(!db.objectStoreNames.contains('work'))db.createObjectStore('work');
+          if(!db.objectStoreNames.contains('projects'))db.createObjectStore('projects',{keyPath:'id'});
+          if(!db.objectStoreNames.contains('folders'))db.createObjectStore('folders',{keyPath:'id'});
+        };
         req.onsuccess=()=>{state.db=req.result;resolve(req.result)};
         req.onerror=()=>{toast('保存機能を開始できませんでした');resolve(null)};
         req.onblocked=()=>toast('保存機能の更新が保留されています');
       });
     }
-    async function saveLocal(){
-      if(!state.db || !state.imageBlob) return;
+    async function getProjectCount(){
+      if(!state.db)return 0;
+      return idbRequest(state.db.transaction('projects').objectStore('projects').count());
+    }
+    async function getProject(id){
+      if(!state.db||!id)return null;
+      return idbRequest(state.db.transaction('projects').objectStore('projects').get(id));
+    }
+    async function getAllProjects(){
+      if(!state.db)return [];
+      return idbRequest(state.db.transaction('projects').objectStore('projects').getAll());
+    }
+    async function getAllFolders(){
+      if(!state.db)return [];
+      return idbRequest(state.db.transaction('folders').objectStore('folders').getAll());
+    }
+    async function putFolder(folder){
+      const tx=state.db.transaction('folders','readwrite');tx.objectStore('folders').put(folder);await txDone(tx);
+    }
+    async function makeThumbnailBlob(){
+      if(!state.image||!canvas.width||!canvas.height)return null;
+      const max=320,scale=Math.min(1,max/Math.max(canvas.width,canvas.height));
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(canvas.width*scale));c.height=Math.max(1,Math.round(canvas.height*scale));
+      c.getContext('2d').drawImage(canvas,0,0,c.width,c.height);
+      return new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.82));
+    }
+    async function saveLocalNow(){
+      if(!state.db || !state.imageBlob || !state.currentProjectId) return;
       try{
-        await new Promise((resolve,reject)=>{
-          const tx=state.db.transaction('work','readwrite');
-          tx.objectStore('work').put({imageBlob:state.imageBlob,annotations:state.annotations,updated:Date.now()},'current');
-          tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
-        });
+        const thumbnailBlob=await makeThumbnailBlob();
+        const existing=await getProject(state.currentProjectId);
+        const record={
+          id:state.currentProjectId,
+          name:state.currentProjectName||existing?.name||'写真',
+          folderId:state.currentProjectFolderId??existing?.folderId??null,
+          imageBlob:state.imageBlob,
+          thumbnailBlob:thumbnailBlob||existing?.thumbnailBlob||null,
+          annotations:clone(state.annotations),
+          originalWidth:state.originalWidth||state.image?.naturalWidth||canvas.width,
+          originalHeight:state.originalHeight||state.image?.naturalHeight||canvas.height,
+          created:state.currentProjectCreated||existing?.created||Date.now(),
+          updated:Date.now()
+        };
+        const tx=state.db.transaction('projects','readwrite');tx.objectStore('projects').put(record);await txDone(tx);
+        try{localStorage.setItem('photo-dimension-note:lastProjectId',record.id)}catch(e){}
         state.saveErrorVisible=false;
       }catch(e){
-        if(!state.saveErrorVisible){state.saveErrorVisible=true;toast('保存できませんでした')}
+        if(!state.saveErrorVisible){
+          state.saveErrorVisible=true;
+          toast(e?.name==='QuotaExceededError'?'端末の保存容量が不足しています':'保存できませんでした');
+        }
       }
+    }
+    function saveLocal(){
+      state.saveSerial=state.saveSerial.then(saveLocalNow,saveLocalNow);
+      return state.saveSerial;
+    }
+    async function migrateLegacyIfNeeded(){
+      if(!state.db || await getProjectCount())return;
+      try{
+        const legacy=await idbRequest(state.db.transaction('work').objectStore('work').get('current'));
+        if(!legacy?.imageBlob)return;
+        const id=uid();
+        const record={id,name:'以前の編集写真',folderId:null,imageBlob:legacy.imageBlob,thumbnailBlob:null,annotations:legacy.annotations||[],created:legacy.updated||Date.now(),updated:legacy.updated||Date.now()};
+        const tx=state.db.transaction('projects','readwrite');tx.objectStore('projects').put(record);await txDone(tx);
+        try{localStorage.setItem('photo-dimension-note:lastProjectId',id)}catch(e){}
+      }catch(e){}
     }
     async function restoreLocal(){
       if(!state.db) return;
-      const req=state.db.transaction('work').objectStore('work').get('current');
-      req.onsuccess=async()=>{
-        const saved=req.result;
-        if(saved?.imageBlob){await loadImageBlob(saved.imageBlob,saved.annotations||[],false);toast('前回の編集を復元しました')}
-      };
-      req.onerror=()=>toast('前回の編集を復元できませんでした');
+      await migrateLegacyIfNeeded();
+      let project=null;
+      try{
+        const id=localStorage.getItem('photo-dimension-note:lastProjectId');
+        if(id)project=await getProject(id);
+      }catch(e){}
+      if(!project){
+        const all=await getAllProjects();
+        project=all.sort((a,b)=>(b.updated||0)-(a.updated||0))[0]||null;
+      }
+      if(project?.imageBlob){
+        await loadImageBlob(project.imageBlob,project.annotations||[],false,project,false);
+        toast('前回の編集を復元しました');
+      }
     }
 
     function commit(change){
@@ -376,16 +507,25 @@
       $('#zoomValue').textContent=Math.round(state.zoom*100)+'%';
     }
 
-    async function loadImageBlob(blob,annotations=[],clearHistory=true){
+    async function loadImageBlob(blob,annotations=[],clearHistory=true,projectMeta=null,shouldSave=true){
       const url=URL.createObjectURL(blob); const img=new Image();
       await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});
       const max=CONFIG.maxImageSize, scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
       canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
       canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
       state.image=img; state.imageBlob=blob; state.annotations=clone(annotations); state.selectedId=null; state.zoom=1;
+      state.originalWidth=projectMeta?.originalWidth||img.naturalWidth;
+      state.originalHeight=projectMeta?.originalHeight||img.naturalHeight;
+      if(projectMeta){
+        state.currentProjectId=projectMeta.id||state.currentProjectId;
+        state.currentProjectName=projectMeta.name||state.currentProjectName||'写真';
+        state.currentProjectFolderId=projectMeta.folderId??null;
+        state.currentProjectCreated=projectMeta.created||Date.now();
+      }
       if(clearHistory){state.history=[];state.future=[]}
       emptyState.classList.add('hidden'); canvas.style.display='block';
-      updateDisplay(); updateButtons(); draw(); URL.revokeObjectURL(url); saveLocal();
+      updateDisplay(); updateButtons(); draw(); URL.revokeObjectURL(url);
+      if(shouldSave)saveLocal();
     }
 
     function line(ctx,x1,y1,x2,y2,color,width){
@@ -492,7 +632,8 @@
         pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
         if(pointers.size>=2){
           const pts=[...pointers.values()],dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;
-          state.pinch={startDistance:Math.hypot(dx,dy),startZoom:state.zoom};
+          const cx=(pts[0].x+pts[1].x)/2,cy=(pts[0].y+pts[1].y)/2;
+          state.pinch={startDistance:Math.hypot(dx,dy),startZoom:state.zoom,lastCenterX:cx,lastCenterY:cy};
           state.drawing=null;state.dragging=null;state.pan=null;state.commentTap=null;draw();return;
         }
       }
@@ -517,7 +658,10 @@
       if(state.pinch&&pointers.size>=2){
         const pts=[...pointers.values()],dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;
         const distance=Math.hypot(dx,dy),cx=(pts[0].x+pts[1].x)/2,cy=(pts[0].y+pts[1].y)/2;
-        applyZoomAt(state.pinch.startZoom*distance/Math.max(1,state.pinch.startDistance),cx,cy);return;
+        const moveX=cx-state.pinch.lastCenterX,moveY=cy-state.pinch.lastCenterY;
+        applyZoomAt(state.pinch.startZoom*distance/Math.max(1,state.pinch.startDistance),cx,cy);
+        stage.scrollLeft-=moveX;stage.scrollTop-=moveY;
+        state.pinch.lastCenterX=cx;state.pinch.lastCenterY=cy;return;
       }
       if(state.pinch)return;
       if(state.pan){stage.scrollLeft=state.pan.left-(e.clientX-state.pan.clientX);stage.scrollTop=state.pan.top-(e.clientY-state.pan.clientY);return}
@@ -633,10 +777,145 @@
     function choosePhoto(){photoInput.click()}
     $('#openPhoto').addEventListener('click',choosePhoto);$('#emptyOpen').addEventListener('click',choosePhoto);
     $('#clearBtn').addEventListener('click',choosePhoto);
+
+    async function importPhoto(file){
+      if(!file.type.startsWith('image/')){toast('画像ファイルを選んでください');return}
+      if(!state.db){toast('保存機能を利用できません');return}
+      const count=await getProjectCount();
+      if(count>=CONFIG.maxProjects){toast('保存上限100枚に達しています');return}
+      await saveLocal();
+      const now=Date.now(),id=uid();
+      const filter=$('#folderFilter')?.value||'all';
+      const folderId=(filter!=='all'&&filter!=='unfiled')?filter:null;
+      const meta={id,name:file.name||('写真_'+localDateStamp()),folderId,created:now,updated:now};
+      try{
+        await loadImageBlob(file,[],true,meta,false);
+        await saveLocal();setMode('dimension');await refreshLibrary();toast('写真をライブラリに追加しました');
+      }catch(e){toast('写真を読み込めませんでした')}
+    }
     photoInput.addEventListener('change',async()=>{
       const file=photoInput.files?.[0];photoInput.value='';if(!file)return;
-      if(!file.type.startsWith('image/')){toast('画像ファイルを選んでください');return}
-      try{await loadImageBlob(file,[],true);setMode('dimension');toast('写真を読み込みました')}catch(e){toast('写真を読み込めませんでした')}
+      await importPhoto(file);
+    });
+
+    const libraryDialog=$('#libraryDialog');
+    function folderName(id){return state.libraryFolders.find(f=>f.id===id)?.name||'未分類'}
+    function formatDate(ts){
+      if(!ts)return '';
+      const d=new Date(ts),pad=n=>String(n).padStart(2,'0');
+      return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    function formatBytes(bytes){
+      if(!Number.isFinite(bytes))return '';
+      const u=['B','KB','MB','GB','TB'];let n=bytes,i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}
+      return `${n>=100||i===0?Math.round(n):n.toFixed(1)} ${u[i]}`;
+    }
+    async function updateStorageEstimate(){
+      const el=$('#storageEstimate');
+      try{
+        const est=await navigator.storage?.estimate?.();
+        if(est?.quota)el.textContent=`IndexedDB等の使用量 ${formatBytes(est.usage||0)} / ブラウザ割当 ${formatBytes(est.quota)}。100枚はアプリ上限で、実際の保存可能数は写真容量により変わります。`;
+        else el.textContent='100枚はアプリ上限です。実際の保存可能数は端末・ブラウザの空き容量により変わります。';
+      }catch(e){el.textContent='100枚はアプリ上限です。実際の保存可能数は端末・ブラウザの空き容量により変わります。'}
+    }
+    function populateFolderControls(){
+      const filter=$('#folderFilter'),move=$('#moveFolderSelect'),current=filter.value||'all';
+      filter.replaceChildren();
+      const addOption=(sel,value,text)=>{const o=document.createElement('option');o.value=value;o.textContent=text;sel.appendChild(o)};
+      addOption(filter,'all','すべての写真');addOption(filter,'unfiled','未分類');
+      state.libraryFolders.forEach(f=>addOption(filter,f.id,f.name));
+      if([...filter.options].some(o=>o.value===current))filter.value=current;
+      move.replaceChildren();addOption(move,'','未分類へ移動');state.libraryFolders.forEach(f=>addOption(move,f.id,f.name));
+    }
+    function updateSelectionBar(){
+      const n=state.librarySelected.size;
+      $('#selectionCount').textContent=`${n}件選択`;
+      $('#selectionBar').classList.toggle('hidden',!state.librarySelectMode);
+      $('#libraryCard').classList.toggle('selecting',state.librarySelectMode);
+      $('#selectProjectsBtn').textContent=state.librarySelectMode?'選択解除':'選択';
+      $('#moveSelectedBtn').disabled=!n;$('#deleteSelectedBtn').disabled=!n;
+    }
+    function renderLibraryGrid(){
+      const grid=$('#libraryGrid'),filter=$('#folderFilter').value||'all';
+      grid.replaceChildren();
+      const visible=state.libraryProjects.filter(p=>filter==='all'||(filter==='unfiled'?!p.folderId:p.folderId===filter));
+      if(!visible.length){
+        const empty=document.createElement('div');empty.className='library-empty';empty.textContent='このフォルダには写真がありません。\n「＋写真」から追加できます。';empty.style.whiteSpace='pre-line';grid.appendChild(empty);updateSelectionBar();return;
+      }
+      visible.forEach(p=>{
+        const card=document.createElement('div');card.className='project-card';card.tabIndex=0;card.dataset.id=p.id;
+        if(state.librarySelected.has(p.id))card.classList.add('selected');
+        const img=document.createElement('img');img.className='project-thumb';img.alt='';
+        const blob=p.thumbnailBlob||p.imageBlob;if(blob){const url=URL.createObjectURL(blob);img.src=url;img.onload=()=>URL.revokeObjectURL(url);img.onerror=()=>URL.revokeObjectURL(url)}
+        const info=document.createElement('div');info.className='project-info';
+        const name=document.createElement('div');name.className='project-name';name.textContent=p.name||'写真';
+        const meta=document.createElement('div');meta.className='project-meta';meta.textContent=`${formatDate(p.updated)} ・ 注釈 ${p.annotations?.length||0}件`;
+        const folder=document.createElement('div');folder.className='project-folder';folder.textContent=folderName(p.folderId);
+        const check=document.createElement('div');check.className='project-check';check.textContent=state.librarySelected.has(p.id)?'✓':'';
+        info.append(name,meta,folder);card.append(img,info,check);
+        const activate=async()=>{
+          if(state.librarySelectMode){
+            if(state.librarySelected.has(p.id))state.librarySelected.delete(p.id);else state.librarySelected.add(p.id);
+            renderLibraryGrid();return;
+          }
+          await openProject(p.id);closeLibrary();
+        };
+        card.addEventListener('click',activate);
+        card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}});
+        grid.appendChild(card);
+      });
+      updateSelectionBar();
+    }
+    async function refreshLibrary(){
+      if(!state.db)return;
+      const [projects,folders]=await Promise.all([getAllProjects(),getAllFolders()]);
+      state.libraryProjects=projects.sort((a,b)=>(b.updated||0)-(a.updated||0));
+      state.libraryFolders=folders.sort((a,b)=>(a.created||0)-(b.created||0));
+      $('#libraryCount').textContent=`${state.libraryProjects.length} / ${CONFIG.maxProjects}`;
+      populateFolderControls();renderLibraryGrid();updateStorageEstimate();
+    }
+    async function openProject(id){
+      if(!id||id===state.currentProjectId)return;
+      await saveLocal();
+      const p=await getProject(id);if(!p?.imageBlob){toast('写真を開けませんでした');return}
+      await loadImageBlob(p.imageBlob,p.annotations||[],true,p,false);
+      try{localStorage.setItem('photo-dimension-note:lastProjectId',p.id)}catch(e){}
+      setMode('dimension');toast('写真を開きました');
+    }
+    function resetWorkspace(){
+      state.image=null;state.imageBlob=null;state.annotations=[];state.selectedId=null;state.currentProjectId=null;state.currentProjectName='';state.currentProjectFolderId=null;state.currentProjectCreated=0;state.originalWidth=0;state.originalHeight=0;state.history=[];state.future=[];state.zoom=1;
+      canvas.style.display='none';emptyState.classList.remove('hidden');updateButtons();
+      try{localStorage.removeItem('photo-dimension-note:lastProjectId')}catch(e){}
+    }
+    function openLibrary(){refreshLibrary();if(typeof libraryDialog.showModal==='function')libraryDialog.showModal();else libraryDialog.setAttribute('open','')}
+    function closeLibrary(){state.librarySelectMode=false;state.librarySelected.clear();updateSelectionBar();if(typeof libraryDialog.close==='function')libraryDialog.close();else libraryDialog.removeAttribute('open','')}
+    $('#libraryBtn').addEventListener('click',openLibrary);$('#closeLibrary').addEventListener('click',closeLibrary);
+    libraryDialog.addEventListener('click',e=>{if(e.target===libraryDialog)closeLibrary()});
+    $('#libraryAddPhoto').addEventListener('click',()=>{closeLibrary();choosePhoto()});
+    $('#folderFilter').addEventListener('change',()=>{state.librarySelected.clear();renderLibraryGrid()});
+    $('#selectProjectsBtn').addEventListener('click',()=>{state.librarySelectMode=!state.librarySelectMode;state.librarySelected.clear();renderLibraryGrid()});
+    $('#createFolderBtn').addEventListener('click',async()=>{
+      const name=prompt('新しいフォルダ名');if(!name?.trim())return;
+      await putFolder({id:uid(),name:name.trim().slice(0,40),created:Date.now()});await refreshLibrary();toast('フォルダを作成しました');
+    });
+    $('#moveSelectedBtn').addEventListener('click',async()=>{
+      const ids=[...state.librarySelected];if(!ids.length)return;
+      const folderId=$('#moveFolderSelect').value||null;
+      const projects=await Promise.all(ids.map(getProject));
+      const tx=state.db.transaction('projects','readwrite'),store=tx.objectStore('projects');
+      projects.filter(Boolean).forEach(p=>{p.folderId=folderId;p.updated=Date.now();store.put(p)});
+      await txDone(tx);
+      if(ids.includes(state.currentProjectId))state.currentProjectFolderId=folderId;
+      state.librarySelected.clear();state.librarySelectMode=false;await refreshLibrary();toast('フォルダを移動しました');
+    });
+    $('#deleteSelectedBtn').addEventListener('click',async()=>{
+      const ids=[...state.librarySelected];if(!ids.length)return;
+      if(!confirm(`${ids.length}枚を端末内ライブラリから削除しますか？`))return;
+      if(!confirm('最終確認です。削除した写真と編集内容は元に戻せません。本当に削除しますか？'))return;
+      const deletingCurrent=ids.includes(state.currentProjectId);
+      const tx=state.db.transaction('projects','readwrite'),store=tx.objectStore('projects');ids.forEach(id=>store.delete(id));await txDone(tx);
+      if(deletingCurrent)resetWorkspace();
+      state.librarySelected.clear();state.librarySelectMode=false;await refreshLibrary();toast(`${ids.length}枚を削除しました`);
     });
 
     const infoDialog=$('#infoDialog');
@@ -684,21 +963,47 @@
       return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
     }
 
-    $('#exportBtn').addEventListener('click',()=>{
+    function exportLine(c,x1,y1,x2,y2,color,width){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.stroke()}
+    function exportArrowHead(c,x,y,angle,color,size,width){c.beginPath();c.moveTo(x-Math.cos(angle-.58)*size,y-Math.sin(angle-.58)*size);c.lineTo(x,y);c.lineTo(x-Math.cos(angle+.58)*size,y-Math.sin(angle+.58)*size);c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';c.stroke()}
+    function exportRoundRect(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+    function exportLabelBadge(c,text,x,y,color,fontSize){c.save();c.font=`800 ${fontSize}px system-ui,-apple-system,"Noto Sans JP",sans-serif`;c.textAlign='center';c.textBaseline='middle';const padX=fontSize*.42,padY=fontSize*.25,w=c.measureText(text).width+padX*2,h=fontSize+padY*2;c.fillStyle='#111820e8';exportRoundRect(c,x-w/2,y-h/2,w,h,fontSize*.32);c.fill();c.strokeStyle=color;c.lineWidth=Math.max(2,fontSize*.06);c.stroke();c.fillStyle='#fff';c.fillText(text,x,y+fontSize*.02);c.restore()}
+    function exportCommentLines(c,text,fontSize,maxWidth){c.font=`700 ${fontSize}px system-ui,-apple-system,"Noto Sans JP",sans-serif`;const output=[];for(const paragraph of String(text||'コメント').split('\n')){let line='';for(const ch of paragraph){const next=line+ch;if(line&&c.measureText(next).width>maxWidth){output.push(line);line=ch}else line=next}output.push(line||' ')}return output.slice(0,8)}
+    function exportDrawAnnotation(c,surface,a){
+      const size=Math.max(surface.width,surface.height),m={line:clamp(size*.0025,4,22),font:clamp(size*.022,30,144),head:clamp(size*.014,19,96)};
+      const dx=a.x2-a.x1,dy=a.y2-a.y1,ang=Math.atan2(dy,dx),len=Math.hypot(dx,dy)||1;
+      if(a.type==='dimension'){exportLine(c,a.x1,a.y1,a.x2,a.y2,a.color,m.line);exportArrowHead(c,a.x1,a.y1,ang+Math.PI,a.color,m.head,m.line);exportArrowHead(c,a.x2,a.y2,ang,a.color,m.head,m.line);const nx=-dy/len,ny=dx/len,off=m.font*.9;exportLabelBadge(c,a.label||'寸法',(a.x1+a.x2)/2+nx*off,(a.y1+a.y2)/2+ny*off,a.color,m.font)}
+      else if(a.type==='arrow'){exportLine(c,a.x1,a.y1,a.x2,a.y2,a.color,m.line);exportArrowHead(c,a.x2,a.y2,ang,a.color,m.head,m.line)}
+      else if(a.type==='redact'){c.save();c.beginPath();c.moveTo(a.x1,a.y1);c.lineTo(a.x2,a.y2);c.strokeStyle=a.color||'#2fd176';c.lineWidth=Math.max(2,size*(a.widthRatio??22)/1000);c.lineCap='square';c.stroke();c.restore()}
+      else if(a.type==='comment'||a.type==='text'){const fontSize=clamp(size*({tiny:.007,small:.01,medium:.014}[a.size||'tiny']),18,a.size==='medium'?108:a.size==='small'?80:60),maxWidth=surface.width*.28,pad=fontSize*.38,lineH=fontSize*1.28;c.save();const lines=exportCommentLines(c,a.label,fontSize,maxWidth);c.font=`700 ${fontSize}px system-ui,-apple-system,"Noto Sans JP",sans-serif`;const textW=Math.max(...lines.map(t=>c.measureText(t).width)),w=textW+pad*2,h=lines.length*lineH+pad*1.45,x=a.x1-w/2,y=a.y1-h/2;c.fillStyle='#0b1116dc';exportRoundRect(c,x,y,w,h,fontSize*.28);c.fill();c.strokeStyle=a.color;c.lineWidth=Math.max(1.5,fontSize*.07);c.stroke();c.fillStyle='#fff';c.textAlign='left';c.textBaseline='middle';lines.forEach((t,i)=>c.fillText(t,x+pad,y+pad*.72+lineH*(i+.5)));c.restore()}
+    }
+    function canvasBlob(c,type='image/png',quality){
+      return new Promise((resolve,reject)=>{try{c.toBlob(b=>b?resolve(b):reject(new Error('blob failed')),type,quality)}catch(e){reject(e)}});
+    }
+    async function makeFullResolutionExport(){
+      const w=state.originalWidth||state.image?.naturalWidth||canvas.width,h=state.originalHeight||state.image?.naturalHeight||canvas.height;
+      if(w===canvas.width&&h===canvas.height){state.selectedId=null;draw();return canvasBlob(canvas,'image/png')}
+      const out=document.createElement('canvas');out.width=w;out.height=h;const c=out.getContext('2d');if(!c)throw new Error('canvas unavailable');
+      c.drawImage(state.image,0,0,w,h);
+      const sx=w/canvas.width,sy=h/canvas.height;
+      state.annotations.forEach(a=>{const scaled=clone(a);scaled.x1*=sx;scaled.x2*=sx;scaled.y1*=sy;scaled.y2*=sy;exportDrawAnnotation(c,out,scaled)});
+      return canvasBlob(out,'image/png');
+    }
+
+    $('#exportBtn').addEventListener('click',async()=>{
       if(!state.image)return;state.selectedId=null;draw();
-      canvas.toBlob(async(blob)=>{
-        if(!blob){toast('画像を作成できませんでした');return}
-        const name='寸法メモ_'+localDateStamp()+'.png';const file=new File([blob],name,{type:'image/png'});
-        let shareFailed=false;
-        try{
-          if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:CONFIG.name});toast('共有しました');return}
-        }catch(e){if(e?.name==='AbortError'){draw();return}else shareFailed=true}
-        const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('画像を保存しました');draw();
-        if(shareFailed)setTimeout(()=>toast('共有できないため端末へ保存しました'),100);
-      },'image/png');
+      let blob;
+      try{blob=await makeFullResolutionExport()}
+      catch(e){try{blob=await canvasBlob(canvas,'image/png');toast('端末の画像処理上限により編集解像度で保存します')}catch(err){toast('画像を作成できませんでした');return}}
+      const name='寸法メモ_'+localDateStamp()+'.png';const file=new File([blob],name,{type:'image/png'});
+      let shareFailed=false;
+      try{
+        if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:CONFIG.name});toast('原画サイズで共有しました');return}
+      }catch(e){if(e?.name==='AbortError'){draw();return}else shareFailed=true}
+      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('原画サイズで保存しました');draw();
+      if(shareFailed)setTimeout(()=>toast('共有できないため端末へ保存しました'),100);
     });
 
-    openDB().then(restoreLocal);requestPersistentStorage();updateButtons();
+    openDB().then(async()=>{await restoreLocal();await refreshLibrary()});requestPersistentStorage();updateButtons();
     if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   })();
   </script>

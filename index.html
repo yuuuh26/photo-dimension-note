@@ -28,7 +28,7 @@
     html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;color:var(--text)}
     button,input{font:inherit}
     button{color:inherit}
-    .app{height:100dvh;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;padding-top:env(safe-area-inset-top);background:radial-gradient(circle at 50% -20%,#26303a 0,transparent 40%),var(--bg)}
+    .app{height:var(--app-height,100dvh);max-height:var(--app-height,100dvh);min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;padding-top:env(safe-area-inset-top);background:radial-gradient(circle at 50% -20%,#26303a 0,transparent 40%),var(--bg)}
     .topbar{display:flex;align-items:center;gap:10px;padding:10px 12px 8px}
     .brand{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
     .brand-mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 22px #0008}
@@ -57,7 +57,7 @@
     .empty h2{font-size:1.35rem;margin:0 0 9px}
     .empty p{font-size:.94rem;line-height:1.7;color:var(--muted);margin:0 0 22px}
     .empty .btn{width:100%;min-height:50px;font-size:1rem}
-    .dock-wrap{position:relative;padding:8px 10px calc(9px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent 0,#0b0e11 14px);z-index:5}
+    .dock-wrap{position:relative;min-height:0;padding:8px 10px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent 0,#0b0e11 14px);z-index:5;overflow:visible}
     .inspector{display:none;position:absolute;left:12px;right:12px;bottom:calc(100% - 5px);align-items:center;gap:7px;padding:8px;border:1px solid var(--line);background:#151a20f2;border-radius:14px;box-shadow:0 10px 30px #0009;overflow-x:auto;scrollbar-width:none;backdrop-filter:blur(12px)}
     .inspector::-webkit-scrollbar{display:none}
     .inspector.show{display:flex}
@@ -69,9 +69,10 @@
     .thickness-control{display:none;align-items:center;gap:6px;white-space:nowrap;color:var(--muted);font-weight:750;font-size:.76rem}
     .thickness-control.show{display:flex}
     .thickness-control input{width:92px;accent-color:#2fd176}
-    .dock{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px;background:#151a20f2;border:1px solid var(--line);border-radius:17px;box-shadow:0 12px 36px #000b;backdrop-filter:blur(12px)}
-    .tool{min-width:0;min-height:58px;border:0;border-radius:12px;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:750;font-size:.72rem}
-    .tool svg{width:22px;height:22px}
+    .dock{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px;background:#151a20f2;border:1px solid var(--line);border-radius:17px;box-shadow:0 12px 36px #000b;backdrop-filter:blur(12px);overflow:visible}
+    .tool{min-width:0;min-height:58px;border:0;border-radius:12px;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:750;font-size:.72rem;line-height:1.15;overflow:visible}
+    .tool span{display:block;white-space:nowrap}
+    .tool svg{width:22px;height:22px;flex:none}
     .tool.active{background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 15px #ffcc3333}
     .sheet-backdrop{display:none;position:fixed;inset:0;background:#0009;z-index:20;align-items:flex-end;justify-content:center;padding:12px}
     .sheet-backdrop.show{display:flex}
@@ -142,6 +143,23 @@
     .copy-btn{height:42px;padding:0 13px;border:1px solid #6e6122;border-radius:10px;background:#2b2818;color:#ffe694;font-weight:750}
     .privacy-detail{margin:0;color:#dce4ea;font-size:.85rem;line-height:1.65}
     .hidden{display:none!important}
+    @media (max-height:720px){
+      .topbar{padding-top:6px;padding-bottom:5px}
+      .quickbar{padding-bottom:5px}
+      .chip{height:34px}
+      .dock-wrap{padding-top:5px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+      .dock{padding:4px}
+      .tool{min-height:50px;gap:2px;font-size:.68rem}
+      .tool svg{width:20px;height:20px}
+    }
+    @media (max-height:600px){
+      .privacy{display:none}
+      .topbar{padding-top:4px;padding-bottom:4px}
+      .quickbar{padding-bottom:4px}
+      .dock-wrap{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+      .tool{min-height:46px;font-size:.65rem}
+      .tool svg{width:19px;height:19px}
+    }
     @media (min-width:760px){
       .app{max-width:920px;margin:auto;border-left:1px solid #202830;border-right:1px solid #202830}
       .topbar{padding-inline:18px}.quickbar{padding-inline:18px}.dock-wrap{padding-inline:18px}.tool{font-size:.8rem}
@@ -266,7 +284,7 @@
       <div class="info-head">
         <div class="info-head-copy">
           <h2 id="infoTitle">写真寸法メモ</h2>
-          <span class="version" id="versionText">v1.2.0</span>
+          <span class="version" id="versionText">v1.2.1</span>
           <p class="made-by">Made by YUU</p>
         </div>
         <button class="close-info" id="closeInfo" aria-label="閉じる">×</button>
@@ -317,7 +335,7 @@
     'use strict';
     const CONFIG = Object.freeze({
       name: '写真寸法メモ',
-      version: 'v1.2.0',
+      version: 'v1.2.1',
       publicUrl: 'https://yuuuh26.github.io/photo-dimension-note/',
       githubUrl: 'https://github.com/yuuuh26/photo-dimension-note',
       dbName: 'photo-dimension-note-library',
@@ -353,6 +371,16 @@
     const clone = (v) => JSON.parse(JSON.stringify(v));
     const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random());
     const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
+
+    function syncAppHeight(){
+      const h=Math.round(window.visualViewport?.height||window.innerHeight||document.documentElement.clientHeight);
+      if(h>0)document.documentElement.style.setProperty('--app-height',h+'px');
+    }
+    syncAppHeight();
+    window.visualViewport?.addEventListener('resize',syncAppHeight);
+    window.visualViewport?.addEventListener('scroll',syncAppHeight);
+    addEventListener('resize',syncAppHeight);
+    addEventListener('orientationchange',()=>setTimeout(syncAppHeight,80));
 
     function toast(message){
       const el=$('#toast'); el.textContent=message; el.classList.add('show');
